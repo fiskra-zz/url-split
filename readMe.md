@@ -248,3 +248,14 @@ I think this approach is more closer to state machine design pattern.
 In state machine design pattern we have State astract class which includes the methods may change object' states. And Event state classes which implement State class and do method implementations. And context class to run methods and change states. 
 
 What I change in these design is I create enum class instead of abstract class and event classes to extends abstract class. Enum class implements EventListener class for behaviour change' methods. I could get rid of writing bulky code(creating a new class for every state is kind of bulky code for me.)   
+
+One good example of sm can be jsf framework entire web request response lifecycle:
+
+1. RestoreViewPhase
+2. ApplyRequestValuePhase
+3. ProcessValidationPhase
+4. UpdateModelvaluesPhase
+5. InvokeApplicationPhase
+6. renderResponsePhase
+
+[state-machine-example](http://efectivejava.blogspot.com.tr/2013/09/java-state-design-patten-oops-state.html?utm_source=BP_recent)
