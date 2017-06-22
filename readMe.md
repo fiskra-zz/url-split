@@ -1,5 +1,7 @@
 # Simple Url Split Technical Challenge
 
+*** This content edited. I found more elegant solution for state machine part. I shared code at the end of readMe. 
+
 ### How to run
 
 Go to the location of jar file in your win/linux environment. 
@@ -138,4 +140,111 @@ public void schemeShouldReturnHttpWithRegex() throws Exception {
 
 These test methods can be extended in many ways. I just wrote some basic ones. 
 
+## EDIT 
 
+I changed the state machine part. I prefered to use one common event `onEventChange` instead of writing all events like `onEventParseScheme`, `onEventParseHost`...  and implement this common method in event' enum. Therefore `StateMachine.java` class is just for changing states.
+
+`StateEventListener.java` class 
+
+```
+public interface StateEventListener {
+
+	void onEventChange(URL aURL, Url urlState) throws Exception;
+}
+
+```
+`State.java` class 
+
+```
+
+public enum State implements StateEventListener{
+	
+	SCHEME{
+		public void onEventChange(URL aURL, Url urlState) throws Exception {
+			urlState.setScheme(aURL.getProtocol());
+						
+		}
+	},HOST{
+		public void onEventChange(URL aURL, Url urlState) throws Exception {
+			urlState.setHost(aURL.getHost());
+			
+		}
+	},PORT{
+		public void onEventChange(URL aURL, Url urlState) throws Exception {
+			urlState.setPort(Integer.toString(aURL.getPort()));
+			
+		}
+	},PATH{
+		public void onEventChange(URL aURL, Url urlState) throws Exception {
+			urlState.setPath(aURL.getPath());
+			
+		}
+	},PARAM{
+		public void onEventChange(URL aURL, Url urlState) throws Exception {
+			urlState.setParameters(aURL.getQuery());
+			
+		}
+	};
+
+}
+
+```
+
+`StateMachine.java` class
+
+```
+public class StateMachine implements StateEventListener {
+	
+	private State currentState;
+	
+	private LinkedList<State> transitions;
+	
+	public StateMachine(){
+		this.transitions = new LinkedList<State>(Arrays.asList(State.SCHEME,State.HOST, State.PORT, State.PATH,State.PARAM));
+	}
+
+	public State getCurrentState() {
+		return currentState;
+	}
+
+	public void setCurrentState(State currentState) {
+		this.currentState = currentState;
+	}
+
+	
+	public LinkedList<State> getTransitions() {
+		return transitions;
+	}
+
+	public void onEventChange(URL aURL, Url urlState) throws Exception {
+		currentState.onEventChange(aURL, urlState);
+	}
+
+}
+```
+This is service part
+
+```
+public Url splitOperationBySM(String url) throws Exception {
+	Url urlState = new Url();
+	try {
+		StateMachine machine = new StateMachine();
+		machine.setCurrentState(State.SCHEME);
+		URL aURL = new URL(url);
+		for (int i = 1; i < machine.getTransitions().size(); i++) {
+			machine.getCurrentState().onEventChange(aURL, urlState);
+			machine.setCurrentState(machine.getTransitions().get(i));
+		}
+	} catch (Exception e) {
+		throw new Exception("Exception occured while state machine parsing operation..."+ e);
+	}
+	return urlState;
+	}	
+```
+
+I think this approach is more closer to state machine design pattern.
+![State Machine Design Pattern](https://github.com/fiskra/url-split/blob/master/statemachine.png)
+
+In state machine design pattern we have State astract class which includes the methods may change object' states. And Event state classes which implement State class and do method implementations. And context class to run methods and change states. 
+
+What I change in these design is I create enum class instead of abstract class and event classes to extends abstract class. Enum class implements EventListener class for behaviour change' methods. I could get rid of writing bulky code(creating a new class for every state is kind of bulky code for me.)   
