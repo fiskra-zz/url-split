@@ -1,5 +1,7 @@
 # Simple Url Split Technical Challenge
 
+[![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/fiskra/url-split/master/LICENSE)
+
 *** This content edited. I found more elegant solution for state machine part. I shared code at the end of readMe. 
 
 ### How to run
